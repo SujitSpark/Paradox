@@ -71,14 +71,28 @@ export default function UploadPage() {
     }
   };
 
-  const handleProcess = () => {
+  const handleProcess = async () => {
     if (!file) return;
     setProcessing(true);
-    setTimeout(() => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('uploaded_by', 'user'); // Replace with actual user ID if available
+      const response = await fetch('http://localhost:8000/api/uploads/', {
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
+        setDone(true);
+        toast.success('File uploaded and processed successfully!');
+      } else {
+        toast.error('Upload failed. Please try again.');
+      }
+    } catch (error) {
+      toast.error('Upload error. Please check your connection.');
+    } finally {
       setProcessing(false);
-      setDone(true);
-      toast.success('Data processed successfully! Priority scores recalculated.');
-    }, 2500);
+    }
   };
 
   return (
