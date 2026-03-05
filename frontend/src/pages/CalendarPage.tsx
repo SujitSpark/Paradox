@@ -1,8 +1,10 @@
 import { useCasesStore } from '@/store/casesStore';
 import { Calendar as CalendarIcon } from 'lucide-react';
+import CaseDetailPanel from '@/components/CaseDetailPanel';
 
 export default function CalendarPage() {
   const cases = useCasesStore((s) => s.cases);
+  const selectCase = useCasesStore((s) => s.selectCase);
   const upcoming = cases
     .filter((c) => c.next_hearing)
     .sort((a, b) => new Date(a.next_hearing!).getTime() - new Date(b.next_hearing!).getTime())
@@ -20,7 +22,11 @@ export default function CalendarPage() {
           <p className="p-6 text-sm text-muted-foreground text-center">No upcoming hearings scheduled.</p>
         )}
         {upcoming.map((c) => (
-          <div key={c.case_id} className="flex items-center gap-4 px-5 py-4">
+          <div
+            key={c.case_id}
+            onClick={() => selectCase(c)}
+            className="flex items-center gap-4 px-5 py-4 hover:bg-muted/30 cursor-pointer transition-colors"
+          >
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <CalendarIcon className="w-5 h-5 text-primary" />
             </div>
@@ -35,6 +41,8 @@ export default function CalendarPage() {
           </div>
         ))}
       </div>
+
+      <CaseDetailPanel />
     </div>
   );
 }
