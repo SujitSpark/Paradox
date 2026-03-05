@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useCasesStore } from '@/store/casesStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-const COLORS = ['hsl(0, 72%, 51%)', 'hsl(19, 22%, 39%)', 'hsl(261, 10%, 67%)', 'hsl(41, 12%, 81%)'];
+const COLORS = ['hsl(0, 72%, 51%)', 'hsl(22, 67%, 20%)', 'hsl(22, 27%, 56%)', 'hsl(22, 44%, 32%)'];
 
 export default function DashboardPage() {
   const role = useAuthStore((s) => s.role);
@@ -39,10 +39,10 @@ export default function DashboardPage() {
           <h3 className="text-sm font-semibold text-foreground mb-4">Cases by Type</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barData}>
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'hsl(19, 22%, 39%)' }} />
-              <YAxis tick={{ fontSize: 11, fill: 'hsl(19, 22%, 39%)' }} />
+              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'hsl(22, 67%, 20%)' }} />
+              <YAxis tick={{ fontSize: 11, fill: 'hsl(22, 67%, 20%)' }} />
               <Tooltip />
-              <Bar dataKey="count" fill="hsl(19, 52%, 15%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="hsl(22, 67%, 20%)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -6,49 +6,49 @@
 
 @layer base {
   :root {
-    --background: 36 33% 93%;
-    --foreground: 36 5% 16%;
+    --background: 43 64% 93%;
+    --foreground: 22 67% 20%;
 
-    --card: 36 43% 95%;
-    --card-foreground: 36 5% 16%;
+    --card: 43 64% 95%;
+    --card-foreground: 22 67% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 36 5% 16%;
+    --popover-foreground: 22 67% 20%;
 
-    --primary: 19 52% 15%;
+    --primary: 22 67% 20%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 19 22% 39%;
+    --secondary: 22 44% 32%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 41 12% 81%;
-    --muted-foreground: 19 22% 39%;
+    --muted: 22 27% 72%;
+    --muted-foreground: 22 44% 32%;
 
-    --accent: 261 10% 67%;
+    --accent: 22 27% 56%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 41 12% 81%;
-    --input: 41 12% 81%;
-    --ring: 19 52% 15%;
+    --border: 22 27% 72%;
+    --input: 43 64% 93%;
+    --ring: 22 67% 20%;
 
     --radius: 0.625rem;
 
-    --sidebar-background: 36 43% 95%;
-    --sidebar-foreground: 36 5% 16%;
-    --sidebar-primary: 19 52% 15%;
+    --sidebar-background: 43 64% 93%;
+    --sidebar-foreground: 22 67% 20%;
+    --sidebar-primary: 22 67% 20%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 261 10% 67%;
+    --sidebar-accent: 22 27% 56%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 41 12% 81%;
-    --sidebar-ring: 19 52% 15%;
+    --sidebar-border: 22 27% 72%;
+    --sidebar-ring: 22 67% 20%;
 
-    --lavender: 261 10% 67%;
-    --soft-brown: 19 22% 39%;
-    --warm-bg: 36 33% 93%;
-    --card-warm: 36 43% 95%;
+    --lavender: 22 27% 56%;
+    --soft-brown: 22 44% 32%;
+    --warm-bg: 43 64% 93%;
+    --card-warm: 43 64% 95%;
   }
 }
 
@@ -65,12 +65,12 @@
 
 @layer utilities {
   .judicial-shadow {
-    box-shadow: 0 1px 3px 0 rgba(58, 31, 18, 0.06), 0 1px 2px -1px rgba(58, 31, 18, 0.06);
+    box-shadow: 0 1px 3px 0 rgba(84, 51, 16, 0.06), 0 1px 2px -1px rgba(84, 51, 16, 0.06);
   }
   .judicial-shadow-md {
-    box-shadow: 0 4px 6px -1px rgba(58, 31, 18, 0.07), 0 2px 4px -2px rgba(58, 31, 18, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(84, 51, 16, 0.07), 0 2px 4px -2px rgba(84, 51, 16, 0.05);
   }
   .judicial-shadow-lg {
-    box-shadow: 0 10px 15px -3px rgba(58, 31, 18, 0.07), 0 4px 6px -4px rgba(58, 31, 18, 0.05);
+    box-shadow: 0 10px 15px -3px rgba(84, 51, 16, 0.07), 0 4px 6px -4px rgba(84, 51, 16, 0.05);
   }
 }
