@@ -7,6 +7,9 @@ def read_root():
     return {"message": "Welcome to JudicAI API"}
 
 # Include routers from controllers here
+from upload_feature.upload_router import upload_router
+app.include_router(upload_router)
+
 # from src.controllers import cases, upload, escalation
 # app.include_router(cases.router, prefix="/api/cases")
 # ...

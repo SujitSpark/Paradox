@@ -1,0 +1,13 @@
+Adjournments Count - RMSE: 6.1702, MAE: 5.3334
+Priority Score - RMSE: 2.6429, MAE: 2.2670
+
+Escalation Level Classification Report:
+              precision    recall  f1-score   support
+
+        High       0.31      0.30      0.30       134
+         Low       0.25      0.22      0.24       126
+      Medium       0.38      0.44      0.41       140
+
+    accuracy                           0.32       400
+   macro avg       0.31      0.32      0.32       400
+weighted avg       0.32      0.32      0.32       400
