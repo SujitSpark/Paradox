@@ -8,7 +8,8 @@ import {
   SortingState,
 } from '@tanstack/react-table';
 import { useCasesStore, CourtCase } from '@/store/casesStore';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, AlertTriangle, Zap } from 'lucide-react';
+import { calculateAdjournmentRisk } from '@/utils/adjournmentRisk';
 
 const col = createColumnHelper<CourtCase>();
 
@@ -17,6 +18,20 @@ const ESCALATION_STYLES: Record<string, string> = {
   high: 'bg-secondary/15 text-secondary',
   medium: 'bg-lavender/20 text-foreground',
   low: 'bg-muted text-muted-foreground',
+};
+
+const ADJ_RISK_STYLES: Record<string, string> = {
+  critical: 'bg-destructive/20 text-destructive font-semibold',
+  high: 'bg-secondary/20 text-secondary font-semibold',
+  medium: 'bg-lavender/20 text-foreground',
+  low: 'bg-primary/10 text-primary',
+};
+
+const getRiskIcon = (level: string) => {
+  if (level === 'critical' || level === 'high') {
+    return <AlertTriangle className="w-3 h-3 inline mr-1" />;
+  }
+  return null;
 };
 
 export default function PriorityTable() {
@@ -51,8 +66,23 @@ export default function PriorityTable() {
         },
       }),
       col.accessor('status', { header: 'Status', size: 100 }),
+      col.display({
+        id: 'adj_risk',
+        header: 'Adj Risk %',
+        size: 100,
+        cell: (info) => {
+          const caseData = info.row.original;
+          const risk = calculateAdjournmentRisk(caseData, cases);
+          return (
+            <div className={`px-2 py-1 rounded text-xs font-medium flex items-center justify-center ${ADJ_RISK_STYLES[risk.riskLevel]}`}>
+              {getRiskIcon(risk.riskLevel)}
+              {risk.riskPercentage}%
+            </div>
+          );
+        },
+      }),
     ],
-    []
+    [cases]
   );
 
   const table = useReactTable({
