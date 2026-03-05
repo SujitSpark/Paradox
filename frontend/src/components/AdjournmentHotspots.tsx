@@ -181,7 +181,7 @@ export default function AdjournmentHotspots() {
           <li>✓ Pre-screen all hotspot cases; verify counsel readiness before hearing</li>
           <li>✓ Issue notices under court rules: counsel must appear or face costs</li>
           <li>✓ Auto-schedule witness summons via e-Courts integration</li>
-          <li>✓ Flag critical cases (>12 adjourns) for judge review & possible dismissal</li>
+          <li>✓ Flag critical cases ({'>'}12 adjourns) for judge review & possible dismissal</li>
           <li>✓ Generate compliance checklists for filing parties 7 days pre-hearing</li>
         </ul>
       </div>
