@@ -1,234 +1,170 @@
-import { useCasesStore } from '@/store/casesStore';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, User, AlertTriangle, FileText } from 'lucide-react';
-import AdjournmentRiskPanel from './AdjournmentRiskPanel';
+import { useCasesStore } from '../store/casesStore';
+import { 
+  X, 
+  Clock, 
+  Gavel, 
+  Calendar, 
+  AlertTriangle,
+
+  ArrowUpRight,
+  MoreVertical,
+  Scale,
+  ShieldCheck,
+  FileText
+} from 'lucide-react';
+import { clsx } from 'clsx';
+import { useEffect } from 'react';
 
 export default function CaseDetailPanel() {
   const selectedCase = useCasesStore((s) => s.selectedCase);
-  const cases = useCasesStore((s) => s.cases);
   const selectCase = useCasesStore((s) => s.selectCase);
 
+  useEffect(() => {
+    if (selectedCase) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [selectedCase]);
+
+  if (!selectedCase) return null;
+
   return (
-    <AnimatePresence>
-      {selectedCase && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-foreground/20 z-40"
+    <div className="fixed inset-0 z-[1000] flex justify-end">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-primary/20 backdrop-blur-sm animate-fade-in"
+        onClick={() => selectCase(null)}
+      />
+      
+      {/* Panel */}
+      <div className="relative w-full max-w-2xl bg-surface h-full shadow-2xl animate-slide-left border-l border-outline-variant/10 overflow-y-auto">
+        <div className="sticky top-0 bg-surface/90 backdrop-blur-md z-10 p-8 flex items-center justify-between border-b border-outline-variant/5">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary text-secondary-fixed rounded-sm shadow-lg">
+              <Scale className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <span className="font-mono text-[9px] font-bold text-on-surface/30 uppercase tracking-widest leading-none block">Dossier Access Authorized</span>
+              <h2 className="font-serif text-xl font-bold text-primary leading-none uppercase tracking-tight">Case Detal</h2>
+            </div>
+          </div>
+          <button 
             onClick={() => selectCase(null)}
-          />
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-            className="fixed right-0 top-0 h-full w-full max-w-lg bg-card border-l border-border z-50 overflow-y-auto judicial-shadow-lg"
+            className="p-2 hover:bg-surface-container-low rounded-full transition-colors group"
           >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-foreground">{selectedCase.case_id}</h2>
-                <button
-                  onClick={() => selectCase(null)}
-                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <X className="w-5 h-5 text-muted-foreground" />
-                </button>
+            <X className="w-6 h-6 text-on-surface/40 group-hover:text-primary transition-colors" />
+          </button>
+        </div>
+
+        <div className="p-10 space-y-12">
+          {/* Header Stats */}
+          <div className="flex items-start justify-between gap-8">
+            <div className="space-y-4 flex-1">
+              <div className="space-y-1">
+                <span className="font-mono text-xs font-bold text-primary/30 uppercase tracking-widest">{selectedCase.case_id}</span>
+                <h1 className="text-4xl font-serif font-bold text-primary leading-tight">Case No: {selectedCase.case_number}</h1>
               </div>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-surface-container-neutral rounded-sm text-[10px] font-black uppercase tracking-widest text-[#00003c]/60">{selectedCase.case_type}</span>
+                <span className={clsx(
+                  "px-3 py-1 rounded-sm text-[10px] font-black uppercase tracking-widest ring-1 ring-inset",
+                  selectedCase.adj_risk_score > 70 ? "bg-red-50 text-red-600 ring-red-100" : "bg-primary text-secondary-fixed ring-primary/20"
+                )}>
+                  {selectedCase.adj_risk_score > 70 ? 'Critical' : 'Standard'} Risk
+                </span>
+                <span className="px-3 py-1 bg-secondary-container text-secondary rounded-sm text-[10px] font-black uppercase tracking-widest ring-1 ring-secondary/10">Priority: {(selectedCase.priority_score * 100).toFixed(0)}</span>
+              </div>
+            </div>
+          </div>
 
-              <div className="space-y-5">
-                <div className="bg-background rounded-lg p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> Case Summary
-                  </h3>
-                  <p className="text-sm text-foreground font-medium">{selectedCase.case_title}</p>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">Type:</span> <span className="text-foreground">{selectedCase.case_type}</span></div>
-                    <div><span className="text-muted-foreground">Status:</span> <span className="text-foreground">{selectedCase.status}</span></div>
-                    <div><span className="text-muted-foreground">Petitioner:</span> <span className="text-foreground">{selectedCase.petitioner}</span></div>
-                    <div><span className="text-muted-foreground">Respondent:</span> <span className="text-foreground">{selectedCase.respondent}</span></div>
+          {/* Key Intelligence Grid - Expanded for the new schema */}
+          <div className="grid grid-cols-2 gap-8 py-8 border-y border-outline-variant/10">
+            <div className="space-y-1">
+              <span className="text-[10px] font-sans font-black uppercase tracking-[0.2em] text-on-surface/30 flex items-center gap-2">
+                <Gavel className="w-3.5 h-3.5" />
+                Court & Bench
+              </span>
+              <p className="font-serif text-lg font-bold text-primary">{selectedCase.court_name_level || selectedCase.court_name}</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-sans font-black uppercase tracking-[0.2em] text-on-surface/30 flex items-center gap-2">
+                <Calendar className="w-3.5 h-3.5" />
+                Filing Date
+              </span>
+              <p className="font-serif text-lg font-bold text-primary">
+                {new Date(selectedCase.filing_date).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-sans font-black uppercase tracking-[0.2em] text-on-surface/30 flex items-center gap-2">
+                <Clock className="w-3.5 h-3.5" />
+                Jurisdiction
+              </span>
+              <p className="font-serif text-lg font-bold text-primary uppercase text-sm">
+                {selectedCase.district}, {selectedCase.state}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-sans font-black uppercase tracking-[0.2em] text-on-surface/30 flex items-center gap-2">
+                <Scale className="w-3.5 h-3.5" />
+                Resolution Status
+              </span>
+              <p className="font-serif text-lg font-bold text-primary">{selectedCase.status}</p>
+            </div>
+          </div>
+
+          {/* AI Insights & Procedural History */}
+          <div className="space-y-8">
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif text-2xl font-bold text-primary underline underline-offset-8 decoration-primary/10">Procedural Summary</h3>
+              <ShieldCheck className="w-5 h-5 text-secondary animate-pulse" />
+            </div>
+            
+            <div className="judicial-card p-8 bg-surface-container-low border-none space-y-6 relative overflow-hidden group ring-1 ring-outline-variant/5">
+              <div className="absolute top-0 right-0 p-4 opacity-5 bg-primary rounded-bl-3xl group-hover:bg-primary transition-all duration-700">
+                <AlertTriangle className="w-12 h-12 text-white" />
+              </div>
+              <div className="relative space-y-6">
+                <p className="font-sans text-sm text-on-surface/70 leading-relaxed italic border-l-2 border-primary/20 pl-6">
+                  "This case in {selectedCase.district} demonstrates a procedural complexity relative to its {selectedCase.case_type} classification. 
+                  High risk of {selectedCase.adjournments_count > 20 ? 'systemic' : 'incidental'} delay noted."
+                </p>
+                <div className="flex items-center gap-6">
+                  <div className="space-y-1 px-4 border-r border-outline-variant/10">
+                    <span className="text-[9px] font-sans font-black uppercase tracking-widest text-[#00003c]/30">Adjournments</span>
+                    <p className="text-xl font-serif font-black text-primary">{selectedCase.adjournments_count}</p>
                   </div>
-                </div>
-
-                <div className="bg-background rounded-lg p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Calendar className="w-4 h-4" /> Timeline
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">Filed:</span> <span className="text-foreground">{selectedCase.filing_date}</span></div>
-                    <div><span className="text-muted-foreground">Last Hearing:</span> <span className="text-foreground">{selectedCase.last_hearing}</span></div>
-                    <div><span className="text-muted-foreground">Next Hearing:</span> <span className="text-foreground">{selectedCase.next_hearing}</span></div>
-                    <div><span className="text-muted-foreground">Age:</span> <span className="text-foreground">{selectedCase.age_days} days</span></div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-sans font-black uppercase tracking-widest text-[#00003c]/30">Case Age</span>
+                    <p className="text-[11px] font-sans font-bold text-primary uppercase">{selectedCase.age_days} Days active</p>
                   </div>
-                </div>
-
-                <div className="bg-background rounded-lg p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <MapPin className="w-4 h-4" /> Court Details
-                  </h3>
-                  <div className="text-sm space-y-1">
-                    <div><span className="text-muted-foreground">Court:</span> <span className="text-foreground">{selectedCase.court_name}</span></div>
-                    <div><span className="text-muted-foreground">District:</span> <span className="text-foreground">{selectedCase.district}</span></div>
-                    <div><span className="text-muted-foreground">Judge:</span> <span className="text-foreground">{selectedCase.judge_assigned}</span></div>
-                  </div>
-                </div>
-
-                <div className="bg-background rounded-lg p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" /> Priority & Escalation
-                  </h3>
-                  <div className="flex items-center gap-4">
-                    <div className="text-center">
-                      <p className="text-3xl font-bold text-foreground">{selectedCase.priority_score}</p>
-                      <p className="text-xs text-muted-foreground">Score</p>
-                    </div>
-                    <div className="text-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
-                        selectedCase.escalation_level === 'critical' ? 'bg-destructive/15 text-destructive' :
-                        selectedCase.escalation_level === 'high' ? 'bg-secondary/15 text-secondary' :
-                        'bg-muted text-muted-foreground'
-                      }`}>
-                        {selectedCase.escalation_level}
-                      </span>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-semibold text-foreground">{selectedCase.adjournments_count}</p>
-                      <p className="text-xs text-muted-foreground">Adjournments</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* NEW: Adjournment Risk Panel */}
-                <AdjournmentRiskPanel caseData={selectedCase} allCases={cases} />
-
-                <div className="bg-background rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
-                    <User className="w-4 h-4" /> AI Memo (Mock)
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    This case has been pending for {selectedCase.age_days} days with {selectedCase.adjournments_count} adjournments.
-                    Given the case type ({selectedCase.case_type}) and current status ({selectedCase.status}),
-                    proactive judicial intervention is recommended to prevent further delay.
-                    Priority score of {selectedCase.priority_score}/100 suggests {selectedCase.escalation_level} urgency classification.
-                  </p>
                 </div>
               </div>
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
+          </div>
 
-  return (
-    <AnimatePresence>
-      {selectedCase && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-foreground/20 z-40"
-            onClick={() => selectCase(null)}
-          />
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-            className="fixed right-0 top-0 h-full w-full max-w-lg bg-card border-l border-border z-50 overflow-y-auto judicial-shadow-lg"
-          >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-foreground">{selectedCase.case_id}</h2>
-                <button
-                  onClick={() => selectCase(null)}
-                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <X className="w-5 h-5 text-muted-foreground" />
+
+          {/* Action Protocols */}
+          <div className="space-y-4 pt-4 pb-10">
+             <h3 className="font-sans font-black uppercase tracking-[0.2em] text-[10px] text-on-surface/30 px-2 pb-2">Execution Protocols</h3>
+             <div className="grid grid-cols-2 gap-3">
+                <button className="btn-primary py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
+                   Escalate Directive
+                   <ArrowUpRight className="w-4 h-4" />
                 </button>
-              </div>
-
-              <div className="space-y-5">
-                <div className="bg-background rounded-lg p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> Case Summary
-                  </h3>
-                  <p className="text-sm text-foreground font-medium">{selectedCase.case_title}</p>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">Type:</span> <span className="text-foreground">{selectedCase.case_type}</span></div>
-                    <div><span className="text-muted-foreground">Status:</span> <span className="text-foreground">{selectedCase.status}</span></div>
-                    <div><span className="text-muted-foreground">Petitioner:</span> <span className="text-foreground">{selectedCase.petitioner}</span></div>
-                    <div><span className="text-muted-foreground">Respondent:</span> <span className="text-foreground">{selectedCase.respondent}</span></div>
-                  </div>
-                </div>
-
-                <div className="bg-background rounded-lg p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Calendar className="w-4 h-4" /> Timeline
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">Filed:</span> <span className="text-foreground">{selectedCase.filing_date}</span></div>
-                    <div><span className="text-muted-foreground">Last Hearing:</span> <span className="text-foreground">{selectedCase.last_hearing}</span></div>
-                    <div><span className="text-muted-foreground">Next Hearing:</span> <span className="text-foreground">{selectedCase.next_hearing}</span></div>
-                    <div><span className="text-muted-foreground">Age:</span> <span className="text-foreground">{selectedCase.age_days} days</span></div>
-                  </div>
-                </div>
-
-                <div className="bg-background rounded-lg p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <MapPin className="w-4 h-4" /> Court Details
-                  </h3>
-                  <div className="text-sm space-y-1">
-                    <div><span className="text-muted-foreground">Court:</span> <span className="text-foreground">{selectedCase.court_name}</span></div>
-                    <div><span className="text-muted-foreground">District:</span> <span className="text-foreground">{selectedCase.district}</span></div>
-                    <div><span className="text-muted-foreground">Judge:</span> <span className="text-foreground">{selectedCase.judge_assigned}</span></div>
-                  </div>
-                </div>
-
-                <div className="bg-background rounded-lg p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" /> Priority & Escalation
-                  </h3>
-                  <div className="flex items-center gap-4">
-                    <div className="text-center">
-                      <p className="text-3xl font-bold text-foreground">{selectedCase.priority_score}</p>
-                      <p className="text-xs text-muted-foreground">Score</p>
-                    </div>
-                    <div className="text-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
-                        selectedCase.escalation_level === 'critical' ? 'bg-destructive/15 text-destructive' :
-                        selectedCase.escalation_level === 'high' ? 'bg-secondary/15 text-secondary' :
-                        'bg-muted text-muted-foreground'
-                      }`}>
-                        {selectedCase.escalation_level}
-                      </span>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-semibold text-foreground">{selectedCase.adjournments_count}</p>
-                      <p className="text-xs text-muted-foreground">Adjournments</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-background rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
-                    <User className="w-4 h-4" /> AI Memo (Mock)
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    This case has been pending for {selectedCase.age_days} days with {selectedCase.adjournments_count} adjournments.
-                    Given the case type ({selectedCase.case_type}) and current status ({selectedCase.status}),
-                    proactive judicial intervention is recommended to prevent further delay.
-                    Priority score of {selectedCase.priority_score}/100 suggests {selectedCase.escalation_level} urgency classification.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+                <button className="btn-secondary py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em]">
+                   Issue Summons
+                   <FileText className="w-4 h-4 text-on-surface/30" />
+                </button>
+                <button className="btn-secondary py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] col-span-2">
+                   Generate Full Case Brief (AI)
+                   <MoreVertical className="w-4 h-4 text-on-surface/30" />
+                </button>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

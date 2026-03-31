@@ -1,76 +1,93 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 43 64% 93%;
-    --foreground: 22 67% 20%;
-
-    --card: 43 64% 95%;
-    --card-foreground: 22 67% 20%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 22 67% 20%;
-
-    --primary: 22 67% 20%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 22 44% 32%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 22 27% 72%;
-    --muted-foreground: 22 44% 32%;
-
-    --accent: 22 27% 56%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 22 27% 72%;
-    --input: 43 64% 93%;
-    --ring: 22 67% 20%;
-
-    --radius: 0.625rem;
-
-    --sidebar-background: 43 64% 93%;
-    --sidebar-foreground: 22 67% 20%;
-    --sidebar-primary: 22 67% 20%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 22 27% 56%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 22 27% 72%;
-    --sidebar-ring: 22 67% 20%;
-
-    --lavender: 22 27% 56%;
-    --soft-brown: 22 44% 32%;
-    --warm-bg: 43 64% 93%;
-    --card-warm: 43 64% 95%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    @apply bg-surface text-on-surface font-sans antialiased selection:bg-secondary-container selection:text-secondary;
+    background-color: #fcf9f4; /* Aged Parchment */
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tight text-primary;
   }
 }
 
-@layer utilities {
-  .judicial-shadow {
-    box-shadow: 0 1px 3px 0 rgba(84, 51, 16, 0.06), 0 1px 2px -1px rgba(84, 51, 16, 0.06);
+@layer components {
+  /* Tonal layering utilities */
+  .judicial-container-low { @apply bg-surface-container-low; }
+  .judicial-container-neutral { @apply bg-surface-container-neutral; }
+  .judicial-container-high { @apply bg-surface-container-high; }
+  .judicial-container-highest { @apply bg-surface-container-highest; }
+  
+  .judicial-card {
+    @apply bg-surface-container-lowest shadow-judicial-ambient rounded-sm;
   }
-  .judicial-shadow-md {
-    box-shadow: 0 4px 6px -1px rgba(84, 51, 16, 0.07), 0 2px 4px -2px rgba(84, 51, 16, 0.05);
+
+  .btn-primary {
+    @apply bg-primary text-secondary-container font-sans font-semibold px-6 py-2 rounded-sm transition-all duration-300 hover:shadow-lg active:scale-95;
+    background: linear-gradient(135deg, #00003c 0%, #000080 100%);
   }
-  .judicial-shadow-lg {
-    box-shadow: 0 10px 15px -3px rgba(84, 51, 16, 0.07), 0 4px 6px -4px rgba(84, 51, 16, 0.05);
+  
+  .btn-secondary {
+    @apply border border-outline-variant bg-transparent text-primary px-6 py-2 rounded-sm hover:bg-surface-container-low;
   }
+  
+  .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+  .animate-slide-up { animation: slideUp 0.6s ease-out forwards; }
+
+  .animate-slide-left { animation: slideLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+  /* Login High Fidelity Styles */
+  .judicial-bg {
+    @apply min-h-screen flex items-center justify-center p-6;
+    background-color: #121212;
+    background-image: linear-gradient(to bottom, rgba(0, 0, 60, 0.8), rgba(0, 0, 0, 0.9)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuARvjGsWOyQEwa5l6XWpcEOqbs0UX5XEpjiCz_l7AmRdf-Uyy7_G2Ncta2jTEWoSP8KCslD5C1ZCEtnt1O34xShT0nO-6HIiZ5UQ63PtTJsb3ME7rmomLj5ENZK5djnHnVEPf-qWtz5bcP26eFSYZImxgzF3G0TgLmQEBDQANF9ynryCPGASKLr04HmZV7s0Zwfbrv7f1ylnAn_M1iIbFNh867NLc_48OzoSZ5JUX7Mjw6sNQodELawm7NaCZdqsq2wN3_wI_gjHys');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
+  .magistrate-card {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(115, 92, 0, 0.2);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  }
+
+  .magistrate-input {
+    @apply border-0 border-b-2 py-3 px-0 focus:ring-0 transition-all text-on-surface placeholder:text-outline/40 font-sans text-lg bg-transparent;
+    border-color: rgba(118, 118, 132, 0.3);
+  }
+
+  .magistrate-input:focus {
+    border-color: #735c00;
+    box-shadow: 0 1px 0 0 #735c00 !important;
+  }
+
+  .gold-leaf-hover:hover {
+    box-shadow: 0 0 15px rgba(233, 195, 73, 0.3) !important;
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    vertical-align: middle;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }

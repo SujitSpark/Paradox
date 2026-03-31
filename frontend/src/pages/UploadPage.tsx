@@ -1,220 +1,167 @@
-import { useState } from 'react';
-import { Upload, CheckCircle, FileText, BarChart3, Table as TableIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { toast } from 'sonner';
-
-interface ParsedCSV {
-  headers: string[];
-  data: Record<string, string>[];
-}
-
-const parseCSVText = (text: string): ParsedCSV => {
-  const lines = text.split('\n').filter(line => line.trim());
-  if (lines.length === 0) {
-    return { headers: [], data: [] };
-  }
-
-  // Parse headers
-  const headers = lines[0].split(',').map(h => h.trim());
-
-  // Parse data rows
-  const data = lines.slice(1).map(line => {
-    const values = line.split(',').map(v => v.trim());
-    const row: Record<string, string> = {};
-    headers.forEach((header, i) => {
-      row[header] = values[i] || '';
-    });
-    return row;
-  });
-
-  return { headers, data };
-};
+import { useState, useCallback } from 'react';
+import { 
+  Upload, 
+  FileSpreadsheet, 
+  X, 
+  CheckCircle2, 
+  AlertCircle, 
+  ShieldCheck, 
+  ChevronRight,
+  Database
+} from 'lucide-react';
+import { clsx } from 'clsx';
 
 export default function UploadPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [processing, setProcessing] = useState(false);
-  const [done, setDone] = useState(false);
-  const [csvData, setCSVData] = useState<ParsedCSV | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [files, setFiles] = useState<{ name: string; size: string; status: 'uploading' | 'success' | 'error' }[]>([]);
 
-  const parseCSV = async (csvFile: File) => {
-    try {
-      const text = await csvFile.text();
-      const parsed = parseCSVText(text);
-      if (parsed.headers.length === 0) {
-        toast.error('File appears to be empty');
-        return;
-      }
-      setCSVData(parsed);
-    } catch (error) {
-      toast.error('Failed to parse CSV file');
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
+  const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    const f = e.dataTransfer.files[0];
-    if (f && f.type === 'text/csv') {
-      setFile(f);
-      parseCSV(f);
-      setDone(false);
-    } else {
-      toast.error('Please upload a CSV file');
-    }
-  };
+    setIsDragging(true);
+  }, []);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (f) {
-      setFile(f);
-      parseCSV(f);
-      setDone(false);
-    }
-  };
+  const onDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
 
-  const handleProcess = () => {
-    if (!file) return;
-    setProcessing(true);
-    setTimeout(() => {
-      setProcessing(false);
-      setDone(true);
-      toast.success('Data processed successfully! Priority scores recalculated.');
-    }, 2500);
-  };
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    // Mock upload
+    const droppedFiles = Array.from(e.dataTransfer.files).map(f => ({
+      name: f.name,
+      size: (f.size / 1024).toFixed(1) + ' KB',
+      status: 'success' as const
+    }));
+    setFiles(prev => [...prev, ...droppedFiles]);
+  }, []);
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Data Upload</h1>
-        <p className="text-sm text-muted-foreground mt-1">Upload CSV case data for processing</p>
+    <div className="space-y-10 animate-fade-in max-w-[1600px] mx-auto pb-20">
+      <div className="flex flex-col gap-2 border-b border-outline-variant/10 pb-8">
+        <h1 className="text-5xl font-serif font-bold tracking-tight text-primary">Document Intake</h1>
+        <p className="text-on-surface/40 font-sans font-medium uppercase tracking-[0.2em] text-[10px] font-black">
+          Automated Ingestion • Judicial Evidence Vault
+        </p>
       </div>
 
-      {/* Centered Upload Box */}
-      <div className="flex justify-center">
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-          className="border-2 border-dashed border-border rounded-xl p-12 text-center hover:border-primary/50 transition-colors bg-card w-full max-w-md"
-        >
-          {file ? (
-            <div className="flex flex-col items-center gap-2">
-              <FileText className="w-10 h-10 text-primary" />
-              <p className="text-sm font-medium text-foreground">{file.name}</p>
-              <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
-              {csvData && (
-                <p className="text-xs text-primary mt-2">
-                  {csvData.data.length} rows, {csvData.headers.length} columns
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        {/* Upload Zone */}
+        <div className="space-y-8">
+          <div 
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            className={clsx(
+              " judicial-card h-[450px] border-2 border-dashed flex flex-col items-center justify-center p-12 transition-all duration-500 group relative overflow-hidden",
+              isDragging ? "border-primary bg-primary/5 scale-[1.02]" : "border-outline-variant/20 hover:border-primary/30"
+            )}
+          >
+            {isDragging && (
+              <div className="absolute inset-0 bg-primary/5 animate-pulse" />
+            )}
+            
+            <div className="relative space-y-6 flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-surface-container-low rounded-sm flex items-center justify-center group-hover:bg-primary transition-all duration-500 shadow-sm ring-1 ring-outline-variant/5">
+                <Upload className="w-10 h-10 text-primary group-hover:text-secondary-fixed transition-colors" />
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="font-serif text-3xl font-bold text-primary">Drag & Drop Registry Data</h3>
+                <p className="text-sm font-sans text-on-surface/40 max-w-[280px] leading-relaxed">
+                  Support for <span className="font-bold text-primary">CSV, Excel (.xlsx)</span>, and <span className="font-bold text-primary">TSV</span> formats. Max file size: 50MB.
                 </p>
-              )}
+              </div>
+              
+              <div className="pt-4">
+                <button className="btn-primary px-10 py-3 shadow-xl">
+                  Select System Files
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="flex flex-col items-center gap-3">
-              <Upload className="w-10 h-10 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Drag & drop CSV file here, or</p>
-              <label className="cursor-pointer px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
-                Browse Files
-                <input
-                  type="file"
-                  accept=".csv"
-                  className="hidden"
-                  onChange={handleFileSelect}
-                />
-              </label>
+            
+            <div className="absolute bottom-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-on-surface/20">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Secure Encrypted Transmission • Judicial Standard
+            </div>
+          </div>
+
+          <div className="judicial-card p-8 bg-surface-container-low/50 border-none space-y-6 ring-1 ring-outline-variant/5">
+            <div className="flex items-center gap-3 pb-4 border-b border-outline-variant/10">
+              <Database className="w-5 h-5 text-primary/40" />
+              <h4 className="font-serif text-xl font-bold text-primary">Database Synchronization</h4>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-sans font-bold text-on-surface/60 uppercase tracking-widest">Target Cluster</span>
+                <span className="text-[11px] font-mono font-black text-primary">REGISTRY-01-A</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-sans font-bold text-on-surface/60 uppercase tracking-widest">Ingestion Priority</span>
+                <span className="text-[11px] font-sans font-black text-secondary uppercase">High Precision</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Validation Feedback */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="font-serif text-2xl font-bold text-primary underline underline-offset-8 decoration-primary/10">Intake Queue</h3>
+            <span className="text-[10px] font-sans font-black text-on-surface/30 uppercase tracking-widest">{files.length} Items Loaded</span>
+          </div>
+          
+          <div className="space-y-4">
+            {files.length === 0 ? (
+              <div className="judicial-card p-12 flex flex-col items-center justify-center text-center space-y-4 opacity-50">
+                <FileSpreadsheet className="w-12 h-12 text-on-surface/20" />
+                <p className="text-[11px] font-sans font-black uppercase tracking-widest text-on-surface/30">No documents in queue</p>
+              </div>
+            ) : (
+              files.map((file, i) => (
+                <div key={i} className="judicial-card p-5 flex items-center gap-5 group hover:bg-surface-container-low transition-colors">
+                  <div className={clsx(
+                    "w-12 h-12 flex items-center justify-center rounded-sm text-white",
+                    file.status === 'success' ? "bg-primary" : "bg-red-600"
+                  )}>
+                    <FileSpreadsheet className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-serif text-base font-bold text-primary truncate leading-tight group-hover:text-secondary transition-colors">{file.name}</h4>
+                    <div className="flex items-center gap-3 text-[9px] font-sans font-black text-on-surface/40 uppercase tracking-tighter">
+                      <span>{file.size}</span>
+                      <span className="text-on-surface/10">•</span>
+                      <span className={clsx(
+                        file.status === 'success' ? "text-primary/60" : "text-red-500"
+                      )}>{file.status === 'success' ? 'Validated & Ready' : 'Validation Error'}</span>
+                    </div>
+                  </div>
+                  
+                  {file.status === 'success' ? (
+                    <CheckCircle2 className="w-5 h-5 text-secondary shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+                  )}
+                  
+                  <button onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))} className="p-1 hover:bg-surface-container-high rounded-sm transition-colors text-on-surface/20 hover:text-red-500">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+          
+          {files.length > 0 && (
+            <div className="pt-4 animate-fade-in">
+              <button className="btn-primary w-full py-4 text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3">
+                Commit to Registry
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           )}
         </div>
       </div>
-
-      {file && !done && (
-        <div className="flex justify-center">
-          <button
-            onClick={handleProcess}
-            disabled={processing}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-          >
-            {processing ? (
-              <>
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full" />
-                Processing...
-              </>
-            ) : (
-              'Process Data'
-            )}
-          </button>
-        </div>
-      )}
-
-      {done && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-center gap-2 text-sm text-primary font-medium">
-          <CheckCircle className="w-5 h-5" />
-          Data processed — imputation complete, priority scores recalculated.
-        </motion.div>
-      )}
-
-      {/* Attributes Section */}
-      {csvData && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          <div className="flex items-center gap-2">
-            <TableIcon className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Data Attributes</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {csvData.headers.map((header) => (
-              <div key={header} className="bg-card border border-border rounded-lg p-3 judicial-shadow-sm">
-                <p className="text-xs font-medium text-primary uppercase tracking-wide">{header}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {csvData.data.filter(row => row[header] && row[header].trim()).length} values
-                </p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Data Preview Section */}
-      {csvData && csvData.data.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Data Preview</h2>
-          </div>
-          <div className="bg-card border border-border rounded-lg overflow-hidden judicial-shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    {csvData.headers.slice(0, 6).map((header) => (
-                      <th key={header} className="px-4 py-3 text-left font-medium text-foreground">
-                        {header}
-                      </th>
-                    ))}
-                    {csvData.headers.length > 6 && (
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                        +{csvData.headers.length - 6} more
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {csvData.data.slice(0, 5).map((row, i) => (
-                    <tr key={i} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
-                      {csvData.headers.slice(0, 6).map((header) => (
-                        <td key={`${i}-${header}`} className="px-4 py-3 text-muted-foreground truncate">
-                          {row[header] || '—'}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {csvData.data.length > 5 && (
-              <div className="px-4 py-3 bg-muted/10 text-xs text-muted-foreground border-t border-border">
-                Showing 5 of {csvData.data.length} rows
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }

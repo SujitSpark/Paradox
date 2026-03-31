@@ -1,0 +1,11 @@
+case_id,case_number,filing_date,registration_date,last_hearing_date,next_hearing_date,case_type,nature_of_case,status,adjournments_count,petitioner_count,respondent_count,court_name_level,district,state
+CID00001,DE/LAB/2023/00001,2023-04-26,2023-05-05,2024-01-10,2024-02-14,Criminal,Theft,Active,34,1,5,Labour Court,New Delhi,Delhi
+CID00002,RA/CON/2015/00002,2015-05-03,2015-05-06,2017-10-17,2017-11-22,Constitutional,Writ Petition,Active,35,2,6,Consumer Forum,Jodhpur,Rajasthan
+CID00003,MA/FAS/2017/00003,2017-06-21,2017-07-06,2024-02-13,2024-03-26,POCSO,Child Trafficking,Adjourned Sine Die,10,6,4,Fast Track Court,Mumbai,Maharashtra
+CID00004,MA/FAM/2016/00004,2016-09-28,2016-10-05,2020-07-14,2020-08-03,Consumer,Insurance Claim,Active,22,3,5,Family Court,Nagpur,Maharashtra
+CID00005,WE/DIS/2023/00005,2023-03-08,2023-03-23,2024-09-22,2024-10-14,Revenue,Land Acquisition,Part Heard,18,6,5,District Court,Howrah,West Bengal
+CID00006,TA/FAS/2022/00006,2022-11-25,2022-11-28,2023-01-13,2023-04-14,Consumer,Service Deficiency,Disposed,5,2,1,Fast Track Court,Chennai,Tamil Nadu
+CID00007,KA/HIG/2020/00007,2020-02-01,2020-02-22,2024-10-26,2024-12-18,Constitutional,Habeas Corpus,Disposed,13,6,3,High Court,Bengaluru,Karnataka
+CID00008,GU/FAM/2022/00008,2022-02-13,2022-02-19,2023-07-05,2023-08-01,Criminal,Kidnapping,Disposed,40,6,5,Family Court,Surat,Gujarat
+CID00009,MA/FAS/2024/00009,2024-06-14,2024-07-09,2024-07-23,2024-08-28,Labour,Workmen Compensation,Disposed,25,3,1,Fast Track Court,Pune,Maharashtra
+CID00010,BI/FAM/2017/00010,2017-05-20,2017-06-10,2023-01-14,2023-03-12,Labour,Workmen Compensation,Pending,16,2,2,Family Court,Gaya,Bihar

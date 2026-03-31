@@ -1,72 +1,84 @@
-import { useAuthStore } from '@/store/authStore';
-import { NavLink, useLocation } from 'react-router-dom';
-import {
-  LayoutDashboard, ListOrdered, AlertTriangle, Upload, ChevronLeft, ChevronRight, Scale,
-  TrendingUp, Calendar, Download,
+import { 
+  LayoutDashboard, 
+  ListFilter, 
+  Calendar, 
+  Upload, 
+  Settings, 
+  ShieldCheck, 
+  Gavel, 
+  BarChart3, 
+  StickyNote 
 } from 'lucide-react';
-import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { clsx } from 'clsx';
+import { useAuthStore } from '../store/authStore';
 
-interface NavItem {
-  label: string;
-  path: string;
-  icon: React.ElementType;
-  roles: string[];
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['registrar', 'junior_judge', 'senior_judge', 'admin'] },
-  { label: 'Priority Queue', path: '/priority', icon: ListOrdered, roles: ['registrar', 'junior_judge', 'senior_judge'] },
-  { label: 'Delay Patterns', path: '/delay-patterns', icon: TrendingUp, roles: ['registrar', 'senior_judge'] },
-  { label: 'Escalation Watch', path: '/escalation', icon: AlertTriangle, roles: ['registrar'] },
-  { label: 'Calendar / Schedule', path: '/calendar', icon: Calendar, roles: ['registrar', 'junior_judge', 'senior_judge'] },
-  { label: 'Upload New Data', path: '/upload', icon: Upload, roles: ['admin', 'registrar'] },
-  { label: 'Export Current View', path: '/export', icon: Download, roles: ['registrar', 'junior_judge', 'senior_judge', 'admin'] },
+const NAV_ITEMS = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: Gavel, label: "All Cases", path: "/all-cases" },
+  { icon: ListFilter, label: "Priority Queue", path: "/priority-queue" },
+  { icon: BarChart3, label: "Risk Analysis", path: "/risk-analysis" },
+  { icon: Calendar, label: "Schedules", path: "/schedules" },
+  { icon: StickyNote, label: "Memos & Escalations", path: "/memos-escalations" },
+  { icon: Upload, label: "Upload Data", path: "/upload" },
 ];
 
 export default function Sidebar() {
-  const role = useAuthStore((s) => s.role);
-  const [collapsed, setCollapsed] = useState(false);
-  const location = useLocation();
+  const user = useAuthStore((s) => s.user);
+  
+  // Dynamic User UI
+  const displayName = user?.fullName || 'Justice Official';
+  const displayRole = user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Official';
+  
+  // Better Initials: e.g. "Sujit Shiravle" -> "SS", "Registrar" -> "RE"
+  const initials = user?.fullName 
+    ? user.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'JD';
 
-  const items = NAV_ITEMS.filter((item) => role && item.roles.includes(role));
 
   return (
-    <aside
-      className={`h-full bg-card border-r border-border flex flex-col transition-all duration-300 ${
-        collapsed ? 'w-16' : 'w-60'
-      }`}
-    >
-      <div className="flex items-center gap-2 px-4 h-16 border-b border-border">
-        <Scale className="w-6 h-6 text-primary shrink-0" />
-        {!collapsed && <span className="font-bold text-foreground text-lg">JustAI</span>}
+    <aside className="w-64 bg-surface-container-low h-screen flex flex-col p-6 overflow-hidden">
+      <div className="flex items-center gap-3 mb-10 px-2 transition-all hover:opacity-90">
+        <div className="w-10 h-10 bg-primary/95 flex items-center justify-center rounded-sm shadow-md ring-1 ring-white/10">
+          <ShieldCheck className="text-secondary-container w-6 h-6" />
+        </div>
+        <div className="flex flex-col">
+          <span className="font-serif text-xl font-bold tracking-tight text-primary">JudicAI</span>
+          <span className="text-[10px] font-sans uppercase tracking-[0.2em] text-on-surface/50 font-black">Modern Magistrate</span>
+        </div>
       </div>
 
-      <nav className="flex-1 py-3 space-y-1 px-2">
-        {items.map((item) => {
-          const active = location.pathname === item.path;
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-foreground hover:bg-muted'
-              }`}
-            >
-              <item.icon className="w-5 h-5 shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </NavLink>
-          );
-        })}
+      <nav className="flex-1 space-y-1">
+        {NAV_ITEMS.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) => clsx(
+              "group flex items-center gap-3 px-3 py-2.5 rounded-sm transition-all duration-300",
+              isActive 
+                ? "bg-surface-container-highest shadow-sm text-primary ring-1 ring-outline-variant/10" 
+                : "text-on-surface/60 hover:bg-surface-container-neutral hover:text-primary"
+            )}
+          >
+            <item.icon className="w-5 h-5 transition-transform group-hover:scale-110" />
+            <span className="font-sans text-sm font-medium tracking-tight whitespace-nowrap group-hover:text-primary transition-colors">{item.label}</span>
+          </NavLink>
+        ))}
       </nav>
 
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center justify-center h-12 border-t border-border text-muted-foreground hover:text-foreground transition-colors"
-      >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
+      <div className="mt-auto pt-6 border-t border-outline-variant/10 px-2 group">
+        <div className="flex items-center gap-3 cursor-pointer">
+          <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant/20 overflow-hidden group-hover:border-primary/30 transition-all">
+            <span className="text-xs font-bold text-primary opacity-80">{initials}</span>
+          </div>
+          <div className="flex flex-col flex-1 min-w-0">
+            <span className="text-xs font-semibold text-primary truncate leading-tight capitalize">{displayName}</span>
+            <span className="text-[9px] text-on-surface/50 font-bold uppercase tracking-wider">{displayRole}</span>
+          </div>
+          <Settings className="w-4 h-4 text-on-surface/30 group-hover:text-primary transition-colors hover:rotate-45" />
+        </div>
+      </div>
     </aside>
   );
 }
+

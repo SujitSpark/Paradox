@@ -1,66 +1,49 @@
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuthStore } from "@/store/authStore";
-import LoginPage from "@/components/LoginPage";
-import Navbar from "@/components/Navbar";
-import Sidebar from "@/components/Sidebar";
-import DashboardPage from "@/pages/DashboardPage";
-import PriorityPage from "@/pages/PriorityPage";
-import DelayPatternsPage from "@/pages/DelayPatternsPage";
-import EscalationPage from "@/pages/EscalationPage";
-import CalendarPage from "@/pages/CalendarPage";
-import UploadPage from "@/pages/UploadPage";
-import ExportPage from "@/pages/ExportPage";
-import NotFound from "@/pages/NotFound";
-
-const queryClient = new QueryClient();
-
-function DefaultRedirect() {
-  const role = useAuthStore((s) => s.role);
-  if (role === 'junior_judge') return <Navigate to="/priority" replace />;
-  if (role === 'admin') return <Navigate to="/upload" replace />;
-  return <Navigate to="/dashboard" replace />;
-}
+import Sidebar from "./components/Sidebar";
+import Navbar from "./components/Navbar";
+import CaseDetailPanel from "./components/CaseDetailPanel";
+import { Toaster } from "sonner";
+import DashboardPage from "./pages/DashboardPage";
+import PriorityPage from "./pages/PriorityPage";
+import LoginPage from "./pages/LoginPage";
+import AllCasesPage from "./pages/AllCasesPage";
+import RiskAnalysisPage from "./pages/RiskAnalysisPage";
+import SchedulesPage from "./pages/SchedulesPage";
+import MemosEscalationsPage from "./pages/MemosEscalationsPage";
+import UploadPage from "./pages/UploadPage";
 
 function AppLayout() {
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-screen w-full bg-surface overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Navbar />
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto px-12 py-10 selection:bg-secondary-container selection:text-secondary transition-all">
           <Routes>
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/priority" element={<PriorityPage />} />
-            <Route path="/delay-patterns" element={<DelayPatternsPage />} />
-            <Route path="/escalation" element={<EscalationPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/all-cases" element={<AllCasesPage />} />
+            <Route path="/priority-queue" element={<PriorityPage />} />
+            <Route path="/risk-analysis" element={<RiskAnalysisPage />} />
+            <Route path="/schedules" element={<SchedulesPage />} />
+            <Route path="/memos-escalations" element={<MemosEscalationsPage />} />
             <Route path="/upload" element={<UploadPage />} />
-            <Route path="/export" element={<ExportPage />} />
-            <Route path="/" element={<DefaultRedirect />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </main>
       </div>
+      <CaseDetailPanel />
     </div>
   );
 }
 
-const App = () => {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-
+export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Sonner />
-        <BrowserRouter>
-          {isAuthenticated ? <AppLayout /> : <LoginPage />}
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <Toaster position="top-right" expand={false} richColors />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/*" element={<AppLayout />} />
+      </Routes>
+    </BrowserRouter>
   );
-};
-
-export default App;
+}
