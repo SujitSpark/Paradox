@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useCasesStore } from '../store/casesStore';
 import { 
   Calendar as CalendarIcon, 
@@ -7,16 +7,20 @@ import {
   Clock, 
   MapPin, 
   Sparkles,
-  Trophy,
-  Filter
+  Trophy
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import JudicialLoader from '../components/JudicialLoader';
 
 export default function SchedulesPage() {
-  const cases = useCasesStore((s) => s.cases);
-  const [viewDate, setViewDate] = useState(new Date(2024, 10, 1)); // Default to Nov 2024 for mock data
+  const { cases, schedules, fetchCases, fetchSchedules, isLoading } = useCasesStore();
+  const [viewDate, setViewDate] = useState(new Date()); 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'week' | 'month' | 'all'>('month');
+
+  useEffect(() => {
+    fetchCases();
+    fetchSchedules();
+  }, [fetchCases, fetchSchedules]);
 
   // Dynamic Date Calculations
   const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -29,26 +33,28 @@ export default function SchedulesPage() {
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   
   // Get start offset (Mon=0, ..., Sun=6)
-  // JS getDay() returns Sun=0, Mon=1, ..., Sat=6
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
   const startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
 
-  // Derive which dates have cases
-  const caseDates = useMemo(() => {
+  // Derive which dates have hearings
+  const hearingDates = useMemo(() => {
     const dates = new Set<string>();
-    cases.forEach(c => dates.add(c.lastHearing));
+    schedules.forEach(s => {
+      const d = s.hearing_date.split('T')[0];
+      dates.add(d);
+    });
     return dates;
-  }, [cases]);
+  }, [schedules]);
 
   // Get cases for the selected date
-  const selectedDateCases = useMemo(() => {
+  const selectedDateHearings = useMemo(() => {
     if (!selectedDate) return [];
-    return cases.filter(c => c.lastHearing === selectedDate);
-  }, [selectedDate, cases]);
+    return schedules.filter(s => s.hearing_date.split('T')[0] === selectedDate);
+  }, [selectedDate, schedules]);
 
   // Real "Today" for highlighting
   const realToday = new Date();
-  const realTodayString = `${realToday.getFullYear()}-${String(realToday.getMonth() + 1).padStart(2, '0')}-${String(realToday.getDate()).padStart(2, '0')}`;
+  const realTodayString = realToday.toISOString().split('T')[0];
 
   const handlePrevMonth = () => {
     setViewDate(new Date(currentYear, currentMonth - 1, 1));
@@ -64,11 +70,9 @@ export default function SchedulesPage() {
     setSelectedDate(realTodayString);
   };
 
-  const FILTERS = [
-    { id: 'week', label: 'This Week' },
-    { id: 'month', label: 'This Month' },
-    { id: 'all', label: 'All Upcoming' }
-  ];
+  if (isLoading && schedules.length === 0) {
+    return <JudicialLoader />;
+  }
 
   return (
     <div className="space-y-8 animate-fade-in max-w-[1400px] mx-auto pb-20">
@@ -80,37 +84,15 @@ export default function SchedulesPage() {
           </p>
         </div>
         
-        <button className="btn-primary flex items-center gap-2 group py-3 px-8 shadow-xl">
+        <button className="bg-primary text-secondary-fixed flex items-center gap-2 px-8 py-3 rounded-sm shadow-xl hover:bg-[#000050] transition-all group">
           <Sparkles className="w-4 h-4 text-secondary-fixed animate-pulse" />
           <span className="text-[11px] font-black uppercase tracking-widest">Generate Optimized Schedule</span>
         </button>
       </div>
 
-      <div className="flex items-center gap-4 mb-4">
-        <div className="flex bg-surface-container-low p-1 rounded-sm ring-1 ring-outline-variant/5">
-          {FILTERS.map(f => (
-            <button 
-              key={f.id}
-              onClick={() => setActiveFilter(f.id as any)}
-              className={clsx(
-                "px-4 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all",
-                activeFilter === f.id ? "bg-primary text-secondary-fixed shadow-sm" : "text-on-surface/40 hover:text-primary"
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-        <div className="h-6 w-[1px] bg-outline-variant/10 mx-2" />
-        <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-on-surface/40 hover:text-primary transition-colors">
-          <Filter className="w-4 h-4" />
-          Custom Range
-        </button>
-      </div>
-
-      <div className="space-y-10">
-        {/* Top Section: Compact Monthly Calendar View */}
-        <div className="judicial-card border-none bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden ring-1 ring-outline-variant/5">
+      <div className="grid grid-cols-1 gap-10">
+        {/* Top Section: Monthly Calendar View */}
+        <div className="judicial-card border-none bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden ring-1 ring-outline-variant/10">
           <div className="flex items-center justify-between px-8 py-6 bg-surface-container-low/30 border-b border-outline-variant/5">
             <h3 className="font-serif text-2xl font-bold text-primary">{monthName} {currentYear}</h3>
             <div className="flex items-center gap-2">
@@ -122,7 +104,7 @@ export default function SchedulesPage() {
               </button>
               <button 
                 onClick={handleToday}
-                className="px-3 py-1.5 hover:bg-surface-container-high rounded-sm transition-colors text-[10px] font-black uppercase tracking-widest text-primary"
+                className="px-3 py-1.5 hover:bg-surface-container-high rounded-sm transition-colors text-[10px] font-black uppercase tracking-widest text-primary font-bold"
               >
                 Today
               </button>
@@ -143,8 +125,12 @@ export default function SchedulesPage() {
             ))}
             {Array.from({ length: 42 }, (_, i) => {
               const day = i - startOffset + 1;
-              const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-              const hasCases = caseDates.has(dateString);
+              const dateObj = new Date(currentYear, currentMonth, day);
+              const localYear = dateObj.getFullYear();
+              const localMonth = String(dateObj.getMonth() + 1).padStart(2, '0');
+              const localDay = String(dateObj.getDate()).padStart(2, '0');
+              const dateString = `${localYear}-${localMonth}-${localDay}`;
+              const hasHearings = hearingDates.has(dateString);
               const isToday = dateString === realTodayString;
               const isSelected = dateString === selectedDate;
               const isInMonth = day > 0 && day <= daysInMonth;
@@ -165,18 +151,18 @@ export default function SchedulesPage() {
                     <span className={clsx(
                       "text-sm font-mono font-bold transition-all",
                       isSelected ? "text-primary scale-110" : "text-on-surface/40",
-                      isToday && "w-7 h-7 rounded-full ring-2 ring-primary bg-primary/5 flex items-center justify-center -m-1 font-black"
+                      isToday && "w-7 h-7 rounded-full ring-2 ring-primary bg-primary/5 flex items-center justify-center -m-1 font-black text-primary"
                     )}>
                       {isInMonth ? day : ''}
                     </span>
-                    {isInMonth && hasCases && (
+                    {isInMonth && hasHearings && (
                       <div className="w-1.5 h-1.5 rounded-full bg-secondary shadow-sm ring-1 ring-white/50" />
                     )}
                   </div>
-                  {isInMonth && hasCases && (
+                  {isInMonth && hasHearings && (
                     <div className="mt-1">
-                      <div className="text-[9px] font-black text-on-surface/20 uppercase tracking-tighter">
-                        {cases.filter(c => c.lastHearing === dateString).length} Matters
+                      <div className="text-[9px] font-black text-primary/40 uppercase tracking-tighter">
+                        {schedules.filter(s => s.hearing_date.split('T')[0] === dateString).length} Hearings
                       </div>
                     </div>
                   )}
@@ -186,85 +172,81 @@ export default function SchedulesPage() {
           </div>
         </div>
 
-        {/* Bottom Section (Dynamic): Master Detail List */}
-        <div className="animate-slide-up">
+        {/* Dynamic Detail List */}
+        <div className="animate-slide-up min-h-[400px]">
           {!selectedDate ? (
-            <div className="judicial-card p-20 flex flex-col items-center justify-center text-center space-y-4 bg-surface-container-low/30 border border-dashed border-outline-variant/20 italic">
+            <div className="judicial-card p-20 flex flex-col items-center justify-center text-center space-y-4 bg-surface-container-low/10 border border-dashed border-outline-variant/20 italic">
               <CalendarIcon className="w-12 h-12 text-on-surface/10 mb-2" />
-              <p className="text-[11px] font-sans font-black uppercase tracking-[0.3em] text-on-surface/30">Click on a date to view scheduled cases</p>
+              <p className="text-[11px] font-sans font-black uppercase tracking-[0.3em] text-on-surface/30">Click on a date to view scheduled hearings</p>
             </div>
           ) : (
             <div className="space-y-8">
               <div className="flex items-end justify-between px-2">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/40">Docket for</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/40 font-bold">Docket for</span>
                   <h3 className="font-serif text-3xl font-bold text-primary">
-                    {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} – {new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'long' })}
+                    {(() => {
+                      const [y, m, d] = selectedDate.split('-');
+                      return new Date(parseInt(y), parseInt(m)-1, parseInt(d)).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+                    })()}
                   </h3>
                 </div>
                 <div className="flex items-center gap-3">
                    <Trophy className="w-5 h-5 text-secondary animate-pulse" />
-                   <span className="text-[10px] font-black uppercase tracking-widest text-[#00003c]/40">AI-Optimized Readiness: 98%</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest text-[#00003c]/40 font-bold">AI Consistency: 98%</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                {selectedDateCases.length === 0 ? (
-                   <div className="col-span-full p-12 text-center text-on-surface/20 text-sm italic font-serif">No hearings scheduled for this date.</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {selectedDateHearings.length === 0 ? (
+                   <div className="col-span-full p-12 text-center text-on-surface/20 text-sm italic font-serif bg-surface-container-low/5 rounded-sm border border-dashed border-outline-variant/10">
+                     No official hearings scheduled for this session.
+                   </div>
                 ) : (
-                  selectedDateCases.map((c, i) => (
-                    <div key={i} className="judicial-card p-8 flex flex-col gap-6 group hover:translate-y-[-4px] transition-all duration-500 hover:shadow-2xl hover:bg-surface-container-low ring-1 ring-outline-variant/5">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2">
-                          <span className="font-mono text-[10px] font-bold text-on-surface/40 uppercase tracking-widest bg-surface-container-low px-2 py-1 rounded-sm">{c.id}</span>
-                          <h4 className="font-serif text-xl font-bold text-primary leading-tight group-hover:text-secondary transition-colors line-clamp-1">{c.title}</h4>
-                        </div>
-                        <div className={clsx(
-                          "px-3 py-1 rounded-sm text-[10px] font-black uppercase tracking-widest shadow-sm",
-                          c.riskLevel === 'critical' ? "bg-red-50 text-red-600 ring-1 ring-red-100" : "bg-primary text-secondary-fixed"
-                        )}>
-                          {c.riskLevel}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-6 pt-6 border-t border-outline-variant/10">
-                        <div className="space-y-1">
-                          <span className="text-[9px] font-sans font-black uppercase tracking-widest text-[#00003c]/30">Type</span>
-                          <p className="text-[11px] font-sans font-bold text-on-surface/70">{c.type}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-[9px] font-sans font-black uppercase tracking-widest text-[#00003c]/30">Priority Score</span>
-                          <p className="text-[11px] font-mono font-black text-primary">{(c.priorityScore * 100).toFixed(0)}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-[9px] font-sans font-black uppercase tracking-widest text-[#00003c]/30">Time Slot</span>
-                          <div className="flex items-center gap-1.5 text-secondary">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span className="text-[11px] font-sans font-bold uppercase tracking-tight">10:30 AM</span>
+                  selectedDateHearings.map((h) => {
+                    const caseData = cases.find(c => c.case_internal_id === h.case_internal_id);
+                    return (
+                      <div key={h.hearing_id} className="judicial-card p-8 flex flex-col gap-6 group hover:translate-y-[-4px] transition-all duration-500 hover:shadow-2xl hover:bg-surface-container-low ring-1 ring-outline-variant/10">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-2">
+                            <span className="font-mono text-[10px] font-bold text-on-surface/40 uppercase tracking-widest bg-surface-container-low px-2 py-1 rounded-sm">#{caseData?.case_id || '???'}</span>
+                            <h4 className="font-serif text-xl font-bold text-primary leading-tight group-hover:text-secondary transition-colors line-clamp-1">{caseData?.case_number || 'Historical Record'}</h4>
+                          </div>
+                          <div className="px-3 py-1 rounded-sm text-[10px] font-black uppercase tracking-widest shadow-sm bg-primary text-secondary-fixed">
+                            {h.status}
                           </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-on-surface/30" />
-                          <span className="text-[11px] font-sans font-bold text-on-surface/40">Court Room No. 4, North Wing</span>
+                        <div className="grid grid-cols-3 gap-6 pt-6 border-t border-outline-variant/10">
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-sans font-black uppercase tracking-widest text-[#00003c]/30 font-bold">Type</span>
+                            <p className="text-[11px] font-sans font-bold text-on-surface/70 uppercase">{caseData?.case_type || 'Civil'}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-sans font-black uppercase tracking-widest text-[#00003c]/30 font-bold">Priority</span>
+                            <p className="text-[11px] font-mono font-black text-primary">{caseData?.priority_score.toFixed(0) || '0'}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-sans font-black uppercase tracking-widest text-[#00003c]/30 font-bold">Time Slot</span>
+                            <div className="flex items-center gap-1.5 text-secondary">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span className="text-[11px] font-sans font-bold uppercase tracking-tight">{h.slot_time}</span>
+                            </div>
+                          </div>
                         </div>
-                        <span className={clsx(
-                          "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm ring-1 ring-inset",
-                          c.status === 'Pending' ? "bg-amber-50 text-amber-700 ring-amber-100" : "bg-blue-50 text-blue-700 ring-blue-100"
-                        )}>
-                          {c.status}
-                        </span>
-                      </div>
 
-                      <div className="pt-2 border-t border-outline-variant/5">
-                        <button className="w-full bg-surface-container-neutral py-3 rounded-sm text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 hover:bg-primary hover:text-white transition-all shadow-sm">
-                          Manage Procedural Memos
-                        </button>
+                        <div className="flex items-center justify-between pt-2">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-on-surface/30" />
+                            <span className="text-[11px] font-sans font-bold text-on-surface/40">Court Room No. 4, North Wing</span>
+                          </div>
+                          <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm ring-1 ring-inset bg-amber-50 text-amber-700 ring-amber-100">
+                            Live Listing
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

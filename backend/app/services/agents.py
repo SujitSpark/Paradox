@@ -73,6 +73,22 @@ RECOMMENDATION:
         return new_memo
 
     @staticmethod
+    def get_initial_state(db: Session, file_path: str = None, case_id: str = None):
+        """Standardized initial state for the JudicAI orchestration graph."""
+        return {
+            "file_path": file_path,
+            "case_id": case_id,
+            "cases": [],
+            "priority_scores": {},
+            "risk_scores": {},
+            "delay_patterns": {},
+            "schedule": [],
+            "memos": {},
+            "final_output": {},
+            "db_session": db
+        }
+
+    @staticmethod
     def _log_action(db: Session, case_id: int, agent: str, action: str, summary: str):
         log = models.AgentLog(
             case_internal_id=case_id,

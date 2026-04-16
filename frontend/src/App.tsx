@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import CaseDetailPanel from "./components/CaseDetailPanel";
@@ -11,6 +11,7 @@ import RiskAnalysisPage from "./pages/RiskAnalysisPage";
 import SchedulesPage from "./pages/SchedulesPage";
 import MemosEscalationsPage from "./pages/MemosEscalationsPage";
 import UploadPage from "./pages/UploadPage";
+import LandingPage from "./pages/LandingPage";
 
 function AppLayout() {
   return (
@@ -27,7 +28,6 @@ function AppLayout() {
             <Route path="/schedules" element={<SchedulesPage />} />
             <Route path="/memos-escalations" element={<MemosEscalationsPage />} />
             <Route path="/upload" element={<UploadPage />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </main>
       </div>
@@ -41,8 +41,11 @@ export default function App() {
     <BrowserRouter>
       <Toaster position="top-right" expand={false} richColors />
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/*" element={<AppLayout />} />
+        <Route path="/*" element={
+          <AppLayout />
+        } />
       </Routes>
     </BrowserRouter>
   );

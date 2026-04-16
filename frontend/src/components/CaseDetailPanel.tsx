@@ -5,15 +5,13 @@ import {
   Gavel, 
   Calendar, 
   AlertTriangle,
-
-  ArrowUpRight,
-  MoreVertical,
   Scale,
   ShieldCheck,
-  FileText
+  Mail
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 export default function CaseDetailPanel() {
   const selectedCase = useCasesStore((s) => s.selectedCase);
@@ -45,8 +43,7 @@ export default function CaseDetailPanel() {
               <Scale className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <span className="font-mono text-[9px] font-bold text-on-surface/30 uppercase tracking-widest leading-none block">Dossier Access Authorized</span>
-              <h2 className="font-serif text-xl font-bold text-primary leading-none uppercase tracking-tight">Case Detal</h2>
+              <h2 className="font-serif text-xl font-bold text-primary leading-none uppercase tracking-tight">Case Details</h2>
             </div>
           </div>
           <button 
@@ -69,9 +66,9 @@ export default function CaseDetailPanel() {
                 <span className="px-3 py-1 bg-surface-container-neutral rounded-sm text-[10px] font-black uppercase tracking-widest text-[#00003c]/60">{selectedCase.case_type}</span>
                 <span className={clsx(
                   "px-3 py-1 rounded-sm text-[10px] font-black uppercase tracking-widest ring-1 ring-inset",
-                  selectedCase.adj_risk_score > 70 ? "bg-red-50 text-red-600 ring-red-100" : "bg-primary text-secondary-fixed ring-primary/20"
+                  selectedCase.adj_risk_score >= 80 ? "bg-red-50 text-red-600 ring-red-100" : "bg-primary text-secondary-fixed ring-primary/20"
                 )}>
-                  {selectedCase.adj_risk_score > 70 ? 'Critical' : 'Standard'} Risk
+                  {selectedCase.adj_risk_score >= 80 ? 'Critical' : 'Standard'} Risk
                 </span>
                 <span className="px-3 py-1 bg-secondary-container text-secondary rounded-sm text-[10px] font-black uppercase tracking-widest ring-1 ring-secondary/10">Priority: {(selectedCase.priority_score * 100).toFixed(0)}</span>
               </div>
@@ -143,27 +140,24 @@ export default function CaseDetailPanel() {
               </div>
             </div>
           </div>
-
-
-          {/* Action Protocols */}
+           {/* Action Protocols */}
           <div className="space-y-4 pt-4 pb-10">
              <h3 className="font-sans font-black uppercase tracking-[0.2em] text-[10px] text-on-surface/30 px-2 pb-2">Execution Protocols</h3>
-             <div className="grid grid-cols-2 gap-3">
-                <button className="btn-primary py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
-                   Escalate Directive
-                   <ArrowUpRight className="w-4 h-4" />
-                </button>
-                <button className="btn-secondary py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em]">
-                   Issue Summons
-                   <FileText className="w-4 h-4 text-on-surface/30" />
-                </button>
-                <button className="btn-secondary py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] col-span-2">
-                   Generate Full Case Brief (AI)
-                   <MoreVertical className="w-4 h-4 text-on-surface/30" />
+             <div className="grid gap-3">
+                <button 
+                  onClick={() => {
+                    toast.success(`Legal Notification: Schedule transmitted to petitioner for Case ${selectedCase.case_number}`, {
+                      description: `Next Hearing: ${selectedCase.next_hearing_date || 'TBD'} | Risk: ${selectedCase.adj_risk_score}%`,
+                    });
+                  }}
+                  className="btn-secondary py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
+                >
+                   <Mail className="w-4 h-4" />
+                   Email Schedule to Petitioner
                 </button>
              </div>
           </div>
-        </div>
+          </div>
       </div>
     </div>
   );

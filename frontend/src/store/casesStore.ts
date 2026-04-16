@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useAuthStore } from './authStore';
 
 export interface CourtCase {
   case_internal_id: number;
@@ -21,7 +22,9 @@ export interface CourtCase {
   age_days: number;
   priority_score: number;
   adj_risk_score: number;
+  risk_level: string;
   escalation_level: number;
+  assigned_user_id?: string;
 }
 
 interface CasesState {
@@ -32,8 +35,32 @@ interface CasesState {
   statusFilter: string | null;
   isLoading: boolean;
   error: string | null;
+  kpis: {
+    total_cases: number;
+    high_risk_cases: number;
+    avg_priority: number;
+    memos_ready: number;
+    trends: {
+      total: string;
+      risk: string;
+      priority: string;
+      memos: string;
+    };
+  } | null;
+  insights: any[];
+  preventionSuggestions: any[];
+  topCriticalCase: CourtCase | null;
+  memos: any[];
+  schedules: any[];
+  agentLogs: any[];
   
   fetchCases: () => Promise<void>;
+  fetchKPIs: () => Promise<void>;
+  fetchInsights: () => Promise<void>;
+  fetchMemos: () => Promise<void>;
+  fetchSchedules: () => Promise<void>;
+  fetchLogs: () => Promise<void>;
+  runAnalysis: () => Promise<void>;
   selectCase: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
   setTypeFilter: (type: string | null) => void;
@@ -41,7 +68,7 @@ interface CasesState {
   resetFilters: () => void;
 }
 
-export const useCasesStore = create<CasesState>((set) => ({
+export const useCasesStore = create<CasesState>((set, get) => ({
 
   cases: [],
   selectedCase: null,
@@ -50,16 +77,138 @@ export const useCasesStore = create<CasesState>((set) => ({
   statusFilter: null,
   isLoading: false,
   error: null,
+  kpis: null,
+  insights: [],
+  preventionSuggestions: [],
+  topCriticalCase: null,
+  memos: [],
+  schedules: [],
+  agentLogs: [],
 
   fetchCases: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch('http://127.0.0.1:8000/cases');
+      const { accessToken } = useAuthStore.getState();
+      const response = await fetch('http://127.0.0.1:8000/cases', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch cases');
       const data = await response.json();
       set({ cases: data, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
+    }
+  },
+
+  fetchKPIs: async () => {
+    try {
+      const { accessToken } = useAuthStore.getState();
+      const response = await fetch('http://127.0.0.1:8000/dashboard/kpis', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        set({ kpis: data });
+      }
+    } catch (err) {
+      console.error('Failed to fetch KPIs:', err);
+    }
+  },
+
+  fetchInsights: async () => {
+    try {
+      const { accessToken } = useAuthStore.getState();
+      const response = await fetch('http://127.0.0.1:8000/dashboard/insights', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        set({ 
+          insights: data.insights, 
+          preventionSuggestions: data.prevention_suggestions,
+          topCriticalCase: data.top_critical_case
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch insights:', err);
+    }
+  },
+
+  fetchMemos: async () => {
+    try {
+      const { accessToken } = useAuthStore.getState();
+      const response = await fetch('http://127.0.0.1:8000/memos', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        set({ memos: data });
+      }
+    } catch (err) {
+      console.error('Failed to fetch memos:', err);
+    }
+  },
+
+  fetchSchedules: async () => {
+    try {
+      const { accessToken } = useAuthStore.getState();
+      const response = await fetch('http://127.0.0.1:8000/hearings', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        set({ schedules: data });
+      }
+    } catch (err) {
+      console.error('Failed to fetch schedules:', err);
+    }
+  },
+
+  fetchLogs: async () => {
+    try {
+      const { accessToken } = useAuthStore.getState();
+      const response = await fetch('http://127.0.0.1:8000/agent-logs', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        set({ agentLogs: data });
+      }
+    } catch (err) {
+      console.error('Failed to fetch logs:', err);
+    }
+  },
+
+  runAnalysis: async () => {
+    set({ isLoading: true });
+    try {
+      const { accessToken } = useAuthStore.getState();
+      const response = await fetch(`http://127.0.0.1:8000/agents/run-full-analysis`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (response.ok) {
+        await get().fetchCases();
+        await get().fetchKPIs();
+      }
+    } catch (err) {
+      console.error('Analysis failed:', err);
+    } finally {
+      set({ isLoading: false });
     }
   },
 

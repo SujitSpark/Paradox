@@ -3,10 +3,8 @@ from datetime import datetime
 from typing import List, Optional
 from enum import Enum
 
-# --- Enum Definitions ---
-class UserRole(str, Enum):
-    REGISTRAR = "registrar"
-    JUDGE = "judge"
+from ..models.models import UserRole
+
 
 # --- Auth Schemas ---
 class UserBase(BaseModel):
@@ -65,6 +63,7 @@ class CaseRead(CaseBase):
     last_adjournment_date: Optional[datetime] = None
     priority_score: float
     adj_risk_score: float
+    risk_level: Optional[str] = None
     escalation_level: int
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -96,13 +95,44 @@ class AdjournmentRead(BaseModel):
 
 class HearingRead(BaseModel):
     hearing_id: int
+    case_internal_id: int
     hearing_date: datetime
     slot_time: str
     status: str
     model_config = ConfigDict(from_attributes=True)
 
+class EscalationBase(BaseModel):
+    case_internal_id: int
+    escalation_level: int
+    reason: str
+
+class EscalationCreate(EscalationBase):
+    pass
+
+class EscalationRead(EscalationBase):
+    escalation_id: int
+    escalated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
 class MemoRead(BaseModel):
     memo_id: int
+    case_internal_id: int
     memo_text: str
     generated_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+# --- Dashboard Schemas ---
+class InsightItem(BaseModel):
+    title: str
+    detail: str
+    type: str # warning, success, critical
+
+class PreventionSuggestion(BaseModel):
+    title: str
+    detail: str
+    icon: Optional[str] = "Lightbulb"
+
+class DashboardInsights(BaseModel):
+    insights: List[InsightItem]
+    prevention_suggestions: List[PreventionSuggestion]
+    top_critical_case: Optional[CaseRead] = None

@@ -5,9 +5,6 @@ import {
   MoreVertical, 
   Filter, 
   Plus, 
-  Trash2, 
-  ArrowUpCircle, 
-  Clock,
   Download
 } from 'lucide-react';
 
@@ -26,7 +23,7 @@ export default function PriorityPage() {
     if (selectedIds.length === cases.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(cases.map(c => c.id));
+      setSelectedIds(cases.map(c => c.case_id));
     }
   };
 
@@ -76,47 +73,48 @@ export default function PriorityPage() {
           <tbody className="divide-y divide-outline-variant/5">
             {cases.map((c) => (
               <tr 
-                key={c.id} 
+                key={c.case_id} 
                 className={clsx(
-                  "group transition-all duration-300 hover:bg-surface-container-low/80 cursor-pointer",
-                  selectedIds.includes(c.id) && "bg-secondary-container/10"
+                  "group transition-all duration-300 hover:bg-surface-container-low/80 cursor-pointer border-l-2",
+                  selectedIds.includes(c.case_id) ? "bg-secondary-container/10" : 
+                  c.adj_risk_score >= 80 ? "border-red-600 bg-red-50/20" : "border-transparent"
                 )}
-                onClick={() => selectCase(c.id)}
+                onClick={() => selectCase(c.case_id)}
               >
                 <td className="px-6 py-5 text-center" onClick={(e) => e.stopPropagation()}>
                   <input 
                     type="checkbox" 
-                    checked={selectedIds.includes(c.id)}
-                    onChange={() => toggleSelect(c.id)}
+                    checked={selectedIds.includes(c.case_id)}
+                    onChange={() => toggleSelect(c.case_id)}
                     className="w-4 h-4 accent-primary rounded-sm cursor-pointer"
                   />
                 </td>
                 <td className="px-6 py-5">
-                  <span className="font-mono text-[11px] font-bold text-primary/50 tracking-wider bg-surface-container-neutral/50 px-2 py-1 rounded-sm uppercase">{c.id}</span>
+                  <span className="font-mono text-[11px] font-bold text-primary/50 tracking-wider bg-surface-container-neutral/50 px-2 py-1 rounded-sm uppercase">{c.case_id}</span>
                 </td>
                 <td className="px-6 py-5">
                   <div className="flex flex-col gap-1">
-                    <span className="font-serif text-[15px] font-bold text-primary group-hover:text-secondary tracking-tight transition-colors">{c.title}</span>
-                    <span className="text-[10px] font-sans text-on-surface/40 font-bold uppercase tracking-tight">Filed: {c.filingDate} • Hearings: {c.adjournments}</span>
+                    <span className="font-serif text-[15px] font-bold text-primary group-hover:text-secondary tracking-tight transition-colors">{c.case_number}</span>
+                    <span className="text-[10px] font-sans text-on-surface/40 font-bold uppercase tracking-tight">Filed: {new Date(c.filing_date).toLocaleDateString()} • Hearings: {c.adjournments_count}</span>
                   </div>
                 </td>
                 <td className="px-6 py-5">
-                  <span className="text-[10px] font-sans font-black uppercase text-on-surface/60 bg-surface-container-low px-2 py-1 rounded-sm">{c.type}</span>
+                  <span className="text-[10px] font-sans font-black uppercase text-on-surface/60 bg-surface-container-low px-2 py-1 rounded-sm">{c.case_type}</span>
                 </td>
                 <td className="px-6 py-5">
-                  <span className="text-[11px] font-sans font-bold text-primary/70">{c.judge}</span>
+                  <span className="text-[11px] font-sans font-bold text-primary/70">{c.assigned_user_id || 'Unassigned'}</span>
                 </td>
                 <td className="px-6 py-5 text-center">
-                  <span className="font-mono text-[13px] font-bold text-primary">{(c.priorityScore * 100).toFixed(0)}</span>
+                  <span className="font-mono text-[13px] font-bold text-primary">{(c.priority_score * 100).toFixed(0)}</span>
                 </td>
                 <td className="px-6 py-5 text-center">
                   <span className={clsx(
                     "text-[9px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-sm border",
-                    c.riskLevel === 'critical' ? "bg-red-50 text-red-600 border-red-100" :
-                    c.riskLevel === 'high' ? "bg-secondary-container text-secondary border-secondary/20" :
+                    c.adj_risk_score >= 80 ? "bg-red-50 text-red-600 border-red-100" :
+                    c.adj_risk_score >= 60 ? "bg-secondary-container text-secondary border-secondary/20" :
                     "bg-surface-container-neutral text-on-surface/50 border-outline-variant/10"
                   )}>
-                    {c.riskLevel}
+                    {c.adj_risk_score >= 80 ? 'CRITICAL' : c.adj_risk_score >= 60 ? 'HIGH' : 'STANDARD'}
                   </span>
                 </td>
                 <td className="px-6 py-5 text-right" onClick={(e) => e.stopPropagation()}>
@@ -141,22 +139,23 @@ export default function PriorityPage() {
           </div>
           
           <div className="flex items-center gap-6">
-            <button className="flex items-center gap-2 hover:text-secondary-fixed transition-colors">
-              <ArrowUpCircle className="w-4 h-4" />
-              <span className="text-[10px] font-sans font-black uppercase tracking-widest">Escalate</span>
-            </button>
-            <button className="flex items-center gap-2 hover:text-secondary-fixed transition-colors">
-              <Clock className="w-4 h-4" />
-              <span className="text-[10px] font-sans font-black uppercase tracking-widest">Reschedule</span>
-            </button>
-            <button className="flex items-center gap-2 hover:text-secondary-fixed transition-colors">
+            <button 
+              onClick={() => {
+                const selectedCases = cases.filter(c => selectedIds.includes(c.case_id));
+                if (selectedCases.length === 0) return;
+                const header = Object.keys(selectedCases[0]).join(',') + '\n';
+                const csvData = selectedCases.map(c => Object.values(c).join(',')).join('\n');
+                const blob = new Blob([header + csvData], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `priority_export_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+              }}
+              className="flex items-center gap-2 hover:text-secondary-fixed transition-colors"
+            >
               <Download className="w-4 h-4" />
               <span className="text-[10px] font-sans font-black uppercase tracking-widest">Batch Export</span>
-            </button>
-            <div className="h-4 w-[1px] bg-white/10 mx-2" />
-            <button className="flex items-center gap-2 text-white/50 hover:text-red-400 transition-colors">
-              <Trash2 className="w-4 h-4" />
-              <span className="text-[10px] font-sans font-black uppercase tracking-widest">Dismiss Items</span>
             </button>
           </div>
 

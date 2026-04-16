@@ -50,9 +50,14 @@ class Case(Base):
     # Computed / Agent-updated fields
     age_days = Column(Integer, default=0)
     last_adjournment_date = Column(DateTime, nullable=True)
+    
+    # Intelligence Metrics (ML & Rules)
     priority_score = Column(Float, default=0.0, index=True)
+    priority_band = Column(String, nullable=True) # HIGH, MEDIUM, LOW
     adj_risk_score = Column(Float, default=0.0, index=True)
+    risk_level = Column(String, nullable=True) # HIGH, MEDIUM, LOW
     escalation_level = Column(Integer, default=0, index=True)
+    days_until_next_hearing = Column(Integer, default=0)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -125,3 +130,14 @@ class AgentLog(Base):
     action = Column(String, nullable=False)
     result_summary = Column(Text)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class DelayPattern(Base):
+    __tablename__ = "delay_patterns"
+    id = Column(Integer, primary_key=True, index=True)
+    district = Column(String, nullable=False, index=True)
+    case_type = Column(String, nullable=False, index=True)
+    avg_adjournments = Column(Float, default=0.0)
+    max_adjournments = Column(Integer, default=0)
+    avg_age_days = Column(Float, default=0.0)
+    analysis_date = Column(DateTime(timezone=True), server_default=func.now())

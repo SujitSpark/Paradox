@@ -10,9 +10,9 @@ import {
   User,
   Gavel,
   X,
-  SearchX,
-  Loader2
+  SearchX
 } from 'lucide-react';
+import JudicialLoader from '../components/JudicialLoader';
 import { toast } from 'sonner';
 
 export default function AllCasesPage() {
@@ -66,14 +66,7 @@ export default function AllCasesPage() {
     });
   };
 
-  if (isLoading) return (
-    <div className="flex items-center justify-center h-[60vh]">
-      <div className="flex flex-col items-center gap-4 text-primary">
-        <Loader2 className="w-12 h-12 animate-spin text-primary/20" />
-        <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Accessing Registry Archive...</span>
-      </div>
-    </div>
-  );
+  if (isLoading) return <JudicialLoader />;
 
   return (
     <div className="space-y-8 animate-fade-in max-w-[1600px] mx-auto pb-10">
@@ -252,7 +245,14 @@ export default function AllCasesPage() {
               </thead>
               <tbody className="divide-y divide-outline-variant/5">
                 {filteredCases.map((c) => (
-                  <tr key={c.case_id} className="group hover:bg-surface-container-low transition-all duration-300 cursor-pointer" onClick={() => selectCase(c.case_id)}>
+                  <tr 
+                    key={c.case_id} 
+                    className={clsx(
+                      "group transition-all duration-300 cursor-pointer border-l-2",
+                      c.adj_risk_score >= 80 ? "border-red-600 bg-red-50/20 hover:bg-red-50/40" : "border-transparent hover:bg-surface-container-low"
+                    )} 
+                    onClick={() => selectCase(c.case_id)}
+                  >
                     <td className="px-6 py-5 align-top">
                       <span className="font-mono text-[10px] font-bold text-on-surface/40 bg-surface-container-neutral px-1.5 py-0.5 rounded-sm">{c.case_id}</span>
                     </td>

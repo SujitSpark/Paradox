@@ -2,12 +2,26 @@
 node_modules/
 .pnp
 .pnp.js
+.venv/
+venv/
+env/
+PYTHON_ENV/
 
 # Build and Output
 dist/
 dist-ssr/
 build/
 coverage/
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+nosetests.xml
+pip-log.txt
+pip-delete-this-directory.txt
 
 # Misc
 .DS_Store
@@ -21,11 +35,20 @@ yarn-debug.log*
 yarn-error.log*
 
 # Editor directories and files
-.idea
-.vscode
+.idea/
+.vscode/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# SQLite Databases
+*.db
+*.db-journal
+
+# Agent Models and Logs
+*.pkl
+backend/tmp_*
+logs/
 
